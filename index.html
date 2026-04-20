@@ -500,10 +500,23 @@
     video.addEventListener('loadedmetadata', () => {
         duration = video.duration;
         video.pause();
+        /* Seed to a visually interesting frame so the first view isn't black */
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        const initFrac  = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+        video.currentTime = initFrac * duration || duration * 0.08;
     });
 
     /* Ensure video never auto-plays */
     video.addEventListener('play', () => video.pause());
+
+    /* Fallback: if preload is blocked, try loading on first scroll interaction */
+    let metaLoaded = false;
+    video.addEventListener('loadedmetadata', () => { metaLoaded = true; });
+    window.addEventListener('scroll', () => {
+        if (!metaLoaded && video.readyState === 0) {
+            video.load();
+        }
+    }, { once: true, passive: true });
 
     window.addEventListener('scroll', () => {
         const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
