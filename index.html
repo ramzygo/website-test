@@ -1,239 +1,591 @@
- ```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aetheris | Deep Space Exploration</title>
-    <!-- Tailwind CSS for styling -->
+    <title>Cosmo Orbital | Engineering The Orbital Frontier</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #000; 
-            color: #fff; 
-            margin: 0;
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #000;
+            color: #fff;
             overflow-x: hidden;
         }
-        
-        /* Glassmorphism Effect */
-        .glass {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
 
-        /* The Reveal Animation */
+        /* ─── Keyframe Animations ─────────────────────────── */
+        @keyframes fly-out-up {
+            0%   { transform: translateY(0%);    opacity: 1; }
+            100% { transform: translateY(-100%); opacity: 0; }
+        }
+        @keyframes fly-in-up {
+            0%   { transform: translateY(100%); opacity: 0; }
+            100% { transform: translateY(0%);   opacity: 1; }
+        }
+        .animate-fly-out-up { animation: fly-out-up 0.32s cubic-bezier(0.16,1,0.3,1) forwards; }
+        .animate-fly-in-up  { animation: fly-in-up  0.32s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+        /* ─── Reveal ──────────────────────────────────────── */
         .reveal {
             opacity: 0;
             transform: translateY(30px);
-            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1),
+                        transform 0.8s cubic-bezier(0.16,1,0.3,1);
         }
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        .reveal-d1 { transition-delay: 0.1s; }
+        .reveal-d2 { transition-delay: 0.2s; }
+        .reveal-d3 { transition-delay: 0.3s; }
+        .reveal-d4 { transition-delay: 0.4s; }
+        .reveal-d5 { transition-delay: 0.5s; }
 
-        /* Nav Hover Rolling Effect */
-        .nav-link {
+        /* ─── Nav Item hover roll ─────────────────────────── */
+        .nav-item {
             position: relative;
-            height: 20px;
+            height: 16px;
             overflow: hidden;
             cursor: pointer;
+            display: flex;
+            align-items: center;
         }
-        .nav-link span {
+        .nav-item .ni-wrap {
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.36s cubic-bezier(0.16,1,0.3,1);
+        }
+        .nav-item span {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.68rem;
+            letter-spacing: 0.09em;
+            line-height: 16px;
+            white-space: nowrap;
             display: block;
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            font-size: 0.75rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
         }
-        .nav-link .hover-text {
-            position: absolute;
-            top: 20px;
-            left: 0;
-            color: #fff;
-        }
-        .nav-link:hover .main-text { transform: translateY(-20px); }
-        .nav-link:hover .hover-text { transform: translateY(-20px); }
+        .nav-item .ni-main  { color: rgba(255,255,255,0.64); }
+        .nav-item .ni-hover { color: #fff; }
+        .nav-item:hover .ni-wrap { transform: translateY(-50%); }
 
-        #video-container {
+        /* ─── Video background ────────────────────────────── */
+        #video-bg {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            z-index: -1;
+            inset: 0;
+            z-index: 0;
             background: #000;
         }
-        
-        video {
+        #video-bg video {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            opacity: 0.5;
-            filter: brightness(0.6) contrast(1.1);
+            transform: scale(1.05);
+            opacity: 0.8;
+        }
+        #video-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom,
+                rgba(0,0,0,0.60) 0%,
+                rgba(0,0,0,0.30) 50%,
+                rgba(0,0,0,0.80) 100%);
+            pointer-events: none;
         }
 
-        .scroll-indicator {
-            animation: bounce 2s infinite;
+        /* ─── Page wrapper ────────────────────────────────── */
+        #page { position: relative; z-index: 10; }
+
+        /* ─── Header ──────────────────────────────────────── */
+        #site-header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 50;
+            opacity: 0;
         }
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-            40% {transform: translateY(-10px);}
-            60% {transform: translateY(-5px);}
+        .header-inner {
+            width: 90%;
+            margin: 0 auto;
+            padding: 22px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* ─── Glass pill nav ──────────────────────────────── */
+        .nav-pill {
+            display: none;
+            gap: 28px;
+            align-items: center;
+            background: rgba(26,26,26,0.4);
+            backdrop-filter: blur(80px);
+            -webkit-backdrop-filter: blur(80px);
+            border-radius: 100px;
+            padding: 12px 28px;
+        }
+        @media(min-width:768px) { .nav-pill { display: flex; } }
+
+        /* ─── CTA segmented button ────────────────────────── */
+        .cta-seg {
+            display: inline-flex;
+            flex-direction: row;
+        }
+        .cta-seg-l, .cta-seg-r {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(80px);
+            -webkit-backdrop-filter: blur(80px);
+            transition: background 0.3s ease, color 0.3s ease;
+            cursor: pointer;
+        }
+        .cta-seg-l {
+            padding: 15px 24px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.68rem;
+            letter-spacing: 0.1em;
+            color: #fff;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+        .cta-seg-r {
+            padding: 15px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cta-seg-r svg { transition: stroke 0.3s ease; stroke: #fff; }
+        .cta-seg:hover .cta-seg-l { background: #fff; color: #000; }
+        .cta-seg:hover .cta-seg-r { background: #fff; }
+        .cta-seg:hover .cta-seg-r svg { stroke: #000; }
+
+        /* ─── Glass button ────────────────────────────────── */
+        .btn-glass {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(80px);
+            -webkit-backdrop-filter: blur(80px);
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 14px 28px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.68rem;
+            letter-spacing: 0.1em;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .btn-glass:hover { background: rgba(255,255,255,0.16); }
+
+        /* ─── Solid white button ──────────────────────────── */
+        .btn-solid {
+            background: #fff;
+            color: #000;
+            padding: 15px 32px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .btn-solid:hover { background: #ddd; }
+
+        /* ─── Word-reveal blur effect ─────────────────────── */
+        .wr {
+            display: inline;
+            opacity: 0.18;
+            filter: blur(5px);
+            transition: opacity 0.55s ease, filter 0.55s ease;
+        }
+        .wr.lit { opacity: 1; filter: blur(0); }
+
+        /* ─── Feature box ─────────────────────────────────── */
+        .feat-box {
+            border-top: 1px solid rgba(255,255,255,0.2);
+            padding-top: 32px;
         }
     </style>
 </head>
 <body>
 
-    <!-- VIDEO BACKGROUND LAYER -->
-    <div id="video-container">
-        <video id="bgVideo" preload="auto" muted playsinline loop>
-            <source src="hf_20260417_110451_9f82b157-dc92-4a9f-a341-c25594ec20e1.mp4" type="video/mp4">
-        </video>
-        <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black"></div>
-    </div>
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  VIDEO BACKGROUND                                       -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="video-bg">
+    <video id="bgVideo" preload="auto" muted playsinline>
+        <source src="hf_20260417_110451_9f82b157-dc92-4a9f-a341-c25594ec20e1.mp4" type="video/mp4">
+    </video>
+    <div id="video-overlay"></div>
+</div>
 
-    <!-- NAVIGATION -->
-    <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-500 py-8 px-6">
-        <div class="container mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                    <div class="w-4 h-4 bg-black rounded-full"></div>
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  PAGE CONTENT                                           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="page">
+
+    <!-- ── HEADER ─────────────────────────────────────────── -->
+    <header id="site-header">
+        <div class="header-inner">
+
+            <!-- Logo -->
+            <div style="display:flex;align-items:center;gap:12px;">
+                <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="17" cy="17" r="16" stroke="white" stroke-width="0.8" stroke-opacity="0.45"/>
+                    <circle cx="17" cy="17" r="9"  stroke="white" stroke-width="0.8"/>
+                    <circle cx="17" cy="17" r="2.5" fill="white"/>
+                    <line x1="17" y1="1"  x2="17" y2="33" stroke="white" stroke-width="0.5" stroke-opacity="0.25"/>
+                    <line x1="1"  y1="17" x2="33" y2="17" stroke="white" stroke-width="0.5" stroke-opacity="0.25"/>
+                    <ellipse cx="17" cy="17" rx="16" ry="5.5" stroke="white" stroke-width="0.6" stroke-opacity="0.5"/>
+                    <path d="M3 11 Q17 6 31 11"  stroke="white" stroke-width="0.5" stroke-opacity="0.2" fill="none"/>
+                    <path d="M3 23 Q17 28 31 23" stroke="white" stroke-width="0.5" stroke-opacity="0.2" fill="none"/>
+                </svg>
+                <span style="font-family:'Space Mono',monospace;font-size:0.72rem;letter-spacing:0.18em;opacity:0.92;text-transform:uppercase;">
+                    Cosmo Orbital
+                </span>
+            </div>
+
+            <!-- Nav pill -->
+            <nav class="nav-pill">
+                <div class="nav-item"><div class="ni-wrap"><span class="ni-main">COMPANY</span><span class="ni-hover">COMPANY</span></div></div>
+                <div class="nav-item"><div class="ni-wrap"><span class="ni-main">STATIONS</span><span class="ni-hover">STATIONS</span></div></div>
+                <div class="nav-item"><div class="ni-wrap"><span class="ni-main">SERVICES</span><span class="ni-hover">SERVICES</span></div></div>
+                <div class="nav-item"><div class="ni-wrap"><span class="ni-main">APPLICATIONS</span><span class="ni-hover">APPLICATIONS</span></div></div>
+                <div class="nav-item"><div class="ni-wrap"><span class="ni-main">CAREERS</span><span class="ni-hover">CAREERS</span></div></div>
+            </nav>
+
+            <!-- Mission button -->
+            <button class="btn-solid">CREATE MISSION</button>
+        </div>
+    </header>
+
+    <!-- ── SECTION 1 · HERO ───────────────────────────────── -->
+    <section style="height:100vh;width:90%;margin:0 auto;display:flex;flex-direction:column;">
+        <div style="flex:1;display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:1fr auto;padding-top:110px;gap:0 20px;">
+
+            <!-- Title -->
+            <div style="grid-column:1/13;grid-row:1;display:flex;align-items:center;">
+                <h1 class="reveal"
+                    style="font-size:clamp(2.5rem,6vw,5rem);line-height:1.05;font-weight:500;letter-spacing:-0.025em;white-space:nowrap;">
+                    Engineering<br>The Orbital Frontier
+                </h1>
+            </div>
+
+            <!-- Bottom row -->
+            <div style="grid-column:1/13;grid-row:2;display:grid;grid-template-columns:repeat(12,1fr);gap:0 20px;align-items:end;padding-bottom:56px;">
+
+                <!-- Description: cols 7–12 -->
+                <div class="reveal reveal-d2" style="grid-column:7/13;margin-bottom:28px;">
+                    <p style="color:rgba(255,255,255,0.64);max-width:460px;line-height:1.75;font-size:0.93rem;">
+                        Reliable construction and launch of commercial space stations, enabling
+                        humanity's next chapter in orbit. We engineer the infrastructure that
+                        powers science, tourism, and commerce beyond Earth.
+                    </p>
                 </div>
-                <span class="text-xl font-extrabold tracking-tighter uppercase italic">Aetheris</span>
+
+                <!-- CTA: cols 8–12 -->
+                <div class="reveal reveal-d3" style="grid-column:8/13;display:flex;justify-content:flex-end;">
+                    <div class="cta-seg">
+                        <div class="cta-seg-l">EXPLORE OUR STATIONS</div>
+                        <div class="cta-seg-r">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                <polyline points="12 5 19 12 12 19"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            
-            <div class="hidden md:flex gap-10">
-                <div class="nav-link"><span class="main-text text-white/50">Mission</span><span class="hover-text">Mission</span></div>
-                <div class="nav-link"><span class="main-text text-white/50">Engine</span><span class="hover-text">Engine</span></div>
-                <div class="nav-link"><span class="main-text text-white/50">Network</span><span class="hover-text">Network</span></div>
+        </div>
+    </section>
+
+    <!-- spacer -->
+    <div style="height:200px;width:100%;"></div>
+
+    <!-- ── SECTION 2 · TURNKEY SOLUTIONS ─────────────────── -->
+    <section style="width:90%;margin:0 auto;min-height:100vh;">
+
+        <!-- Blurred word-reveal headline -->
+        <div id="wr-turnkey"
+             style="font-size:clamp(2rem,4.5vw,4rem);line-height:1.25;font-weight:500;letter-spacing:-0.015em;">
+            <span class="wr">Turnkey</span> <span class="wr">Orbital</span>
+            <span class="wr">Solutions</span> <span class="wr">For</span>
+            <span class="wr">Commercial</span> <span class="wr">Space</span>
+            <span class="wr">Exploration</span> <span class="wr">—</span>
+            <span class="wr">Designed</span> <span class="wr">For</span>
+            <span class="wr">Those</span> <span class="wr">Who</span>
+            <span class="wr">Dare</span> <span class="wr">To</span>
+            <span class="wr">Reach</span> <span class="wr">Beyond.</span>
+        </div>
+
+        <!-- 12-col grid -->
+        <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:0 24px;margin-top:96px;">
+
+            <!-- Left: aesthetic marker -->
+            <div class="reveal" style="grid-column:1/5;">
+                <svg width="56" height="56" viewBox="0 0 56 56" fill="none"
+                     style="margin-bottom:28px;opacity:0.28;">
+                    <circle cx="28" cy="28" r="27"  stroke="white" stroke-width="0.6"/>
+                    <circle cx="28" cy="28" r="14"  stroke="white" stroke-width="0.6"/>
+                    <line x1="0"  y1="28" x2="56" y2="28" stroke="white" stroke-width="0.6"/>
+                    <line x1="28" y1="0"  x2="28" y2="56" stroke="white" stroke-width="0.6"/>
+                    <circle cx="28" cy="28" r="3" fill="white" fill-opacity="0.5"/>
+                    <path d="M4 19 Q28 5  52 19" stroke="white" stroke-width="0.5" fill="none"/>
+                    <path d="M4 37 Q28 51 52 37" stroke="white" stroke-width="0.5" fill="none"/>
+                </svg>
+                <p style="font-family:'Space Mono',monospace;font-size:0.62rem;letter-spacing:0.22em;
+                           text-transform:uppercase;color:rgba(255,255,255,0.6);line-height:2;">
+                    Shaping<br>the future<br>in orbit
+                </p>
             </div>
 
-            <button class="px-6 py-2 bg-white text-black text-[10px] font-bold uppercase tracking-widest rounded-full hover:bg-neutral-200 transition-colors">
-                Launch
-            </button>
-        </div>
-    </nav>
+            <!-- Middle: Microgravity -->
+            <div class="reveal reveal-d2" style="grid-column:5/9;">
+                <h3 style="font-size:1.05rem;font-weight:500;margin-bottom:14px;letter-spacing:-0.01em;">
+                    Microgravity Research Facilities
+                </h3>
+                <p style="color:rgba(255,255,255,0.58);font-size:0.875rem;line-height:1.78;">
+                    Unlock new possibilities for your R&amp;D with permanently crewed orbital
+                    laboratories. We handle design, construction, launch, and ongoing maintenance —
+                    so you can focus on discovery.
+                </p>
+            </div>
 
-    <!-- HERO SECTION -->
-    <section class="h-screen flex flex-col items-center justify-center text-center px-6 relative">
-        <div class="reveal"><span class="text-[10px] font-bold tracking-[0.5em] uppercase text-white/40 mb-4 block">Outer Rim Frontier</span></div>
-        <div class="reveal" style="transition-delay: 100ms;">
-            <h1 class="text-6xl md:text-9xl font-black tracking-tighter leading-[0.85] mb-8">
-                VOYAGE<br/><span class="text-transparent" style="-webkit-text-stroke: 1px rgba(255,255,255,0.4)">BEYOND</span>
-            </h1>
+            <!-- Right: Tourism -->
+            <div class="reveal reveal-d3" style="grid-column:9/13;">
+                <h3 style="font-size:1.05rem;font-weight:500;margin-bottom:14px;letter-spacing:-0.01em;">
+                    Commercial Space Tourism Habitats
+                </h3>
+                <p style="color:rgba(255,255,255,0.58);font-size:0.875rem;line-height:1.78;">
+                    Experience the ultimate journey beyond Earth's atmosphere. Our luxury orbital
+                    habitats offer unparalleled views and zero-gravity experiences for discerning
+                    private travellers and commercial operators alike.
+                </p>
+            </div>
+
         </div>
-        <div class="reveal" style="transition-delay: 200ms;">
-            <p class="max-w-md mx-auto text-white/50 font-light leading-relaxed mb-10 text-sm md:text-base">
-                Interactive scrollytelling engine mapping user movement to the timeline of deep space exploration.
+    </section>
+
+    <!-- spacer -->
+    <div style="height:200px;width:100%;"></div>
+
+    <!-- ── SECTION 3 · PRECISION ENGINEERING ─────────────── -->
+    <section style="width:90%;margin:0 auto;border-top:1px solid rgba(255,255,255,0.1);padding-top:64px;">
+
+        <!-- Top: 7/5 split -->
+        <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:0 24px;align-items:start;">
+
+            <!-- Left: big scroll-reveal text -->
+            <div id="wr-precision" style="grid-column:1/8;">
+                <p style="font-size:clamp(1.75rem,3.5vw,3.1rem);font-weight:500;
+                           line-height:1.18;letter-spacing:-0.02em;">
+                    <span class="wr">Precision</span> <span class="wr">engineering</span>
+                    <span class="wr">for</span> <span class="wr">the</span>
+                    <span class="wr">harshest</span> <span class="wr">environments.</span>
+                </p>
+            </div>
+
+            <!-- Right: body + button -->
+            <div class="reveal reveal-d2"
+                 style="grid-column:8/13;display:flex;flex-direction:column;gap:28px;padding-top:6px;">
+                <p style="color:rgba(255,255,255,0.6);font-size:0.9rem;line-height:1.82;">
+                    We prioritise safety, scalability, and modularity in every structure we build.
+                    From thermal management to radiation shielding, each system is stress-tested
+                    across thousands of mission scenarios before a single component leaves Earth.
+                </p>
+                <div>
+                    <button class="btn-glass">SEE SPECIFICATIONS</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature boxes: 3 equal columns -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:128px;">
+
+            <div class="reveal reveal-d1 feat-box">
+                <p style="font-size:1.8rem;font-weight:300;margin-bottom:10px;">01</p>
+                <h3 style="font-size:1rem;font-weight:500;margin-bottom:14px;">Advanced Life Support</h3>
+                <p style="color:rgba(255,255,255,0.54);font-size:0.84rem;line-height:1.78;">
+                    Closed-loop atmospheric systems with triple-redundancy. Continuous real-time
+                    monitoring ensures crew safety and habitat integrity across all mission phases.
+                </p>
+            </div>
+
+            <div class="reveal reveal-d2 feat-box">
+                <p style="font-size:1.8rem;font-weight:300;margin-bottom:10px;">02</p>
+                <h3 style="font-size:1rem;font-weight:500;margin-bottom:14px;">Modular Architecture</h3>
+                <p style="color:rgba(255,255,255,0.54);font-size:0.84rem;line-height:1.78;">
+                    Expandable habitat rings built to reconfigure in orbit. Plug-and-play docking
+                    interfaces support rapid scaling from two to two hundred occupants.
+                </p>
+            </div>
+
+            <div class="reveal reveal-d3 feat-box">
+                <p style="font-size:1.8rem;font-weight:300;margin-bottom:10px;">03</p>
+                <h3 style="font-size:1rem;font-weight:500;margin-bottom:14px;">Autonomous Operations</h3>
+                <p style="color:rgba(255,255,255,0.54);font-size:0.84rem;line-height:1.78;">
+                    On-board AI manages station-keeping, power distribution, and emergency response.
+                    Designed for uncrewed intervals of up to six months without ground intervention.
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- spacer -->
+    <div style="height:200px;width:100%;"></div>
+
+    <!-- ── SECTION 4 · CTA & FOOTER ──────────────────────── -->
+    <section style="width:90%;margin:0 auto;border-top:1px solid rgba(255,255,255,0.1);
+                    text-align:center;display:flex;flex-direction:column;align-items:center;
+                    padding-top:96px;">
+
+        <h2 class="reveal"
+            style="font-size:clamp(2rem,4vw,3.6rem);font-weight:500;
+                   letter-spacing:-0.02em;max-width:800px;line-height:1.15;">
+            Ready to take your business into orbit?
+        </h2>
+
+        <!-- Button row -->
+        <div class="reveal reveal-d2"
+             style="display:flex;gap:24px;margin-top:80px;flex-wrap:wrap;justify-content:center;">
+            <button class="btn-solid">START YOUR MISSION</button>
+            <button class="btn-glass">Contact Sales</button>
+        </div>
+
+        <!-- Footer -->
+        <footer style="width:100%;margin-top:160px;padding:32px 0 48px;
+                        border-top:1px solid rgba(255,255,255,0.1);
+                        display:flex;justify-content:space-between;align-items:center;
+                        flex-wrap:wrap;gap:16px;">
+            <p style="font-family:'Space Mono',monospace;font-size:13px;color:rgba(255,255,255,0.5);">
+                &copy; 2026 Cosmo Orbital Limited. All Rights Reserved.
             </p>
-        </div>
-        <div class="absolute bottom-12 scroll-indicator opacity-30">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
-        </div>
+            <div style="display:flex;gap:28px;">
+                <a href="#"
+                   style="font-family:'Space Mono',monospace;font-size:13px;
+                          color:rgba(255,255,255,0.5);text-decoration:none;
+                          transition:color 0.2s;"
+                   onmouseover="this.style.color='rgba(255,255,255,0.85)'"
+                   onmouseout="this.style.color='rgba(255,255,255,0.5)'">
+                    Privacy Policy
+                </a>
+                <a href="#"
+                   style="font-family:'Space Mono',monospace;font-size:13px;
+                          color:rgba(255,255,255,0.5);text-decoration:none;
+                          transition:color 0.2s;"
+                   onmouseover="this.style.color='rgba(255,255,255,0.85)'"
+                   onmouseout="this.style.color='rgba(255,255,255,0.5)'">
+                    Terms of Service
+                </a>
+            </div>
+        </footer>
     </section>
 
-    <!-- CONTENT GRID SECTION -->
-    <section class="py-40 px-6">
-        <div class="container mx-auto">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="reveal p-10 rounded-3xl glass hover:bg-white/10 transition-all group">
-                    <div class="text-white/20 mb-6 group-hover:text-white transition-colors">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                    </div>
-                    <h3 class="text-xl font-bold mb-4">Planetary Mapping</h3>
-                    <p class="text-white/40 text-sm leading-relaxed">High-fidelity topological scans of exoplanets in the Goldilocks zone.</p>
-                </div>
-                
-                <div class="reveal p-10 rounded-3xl glass hover:bg-white/10 transition-all group" style="transition-delay: 100ms;">
-                    <div class="text-white/20 mb-6 group-hover:text-white transition-colors">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-                    </div>
-                    <h3 class="text-xl font-bold mb-4">Quantum Fusion</h3>
-                    <p class="text-white/40 text-sm leading-relaxed">Propulsion systems powered by controlled sub-atomic singularity collapse.</p>
-                </div>
+    <!-- bottom breathing room -->
+    <div style="height:48px;"></div>
 
-                <div class="reveal p-10 rounded-3xl glass hover:bg-white/10 transition-all group" style="transition-delay: 200ms;">
-                    <div class="text-white/20 mb-6 group-hover:text-white transition-colors">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    </div>
-                    <h3 class="text-xl font-bold mb-4">Void Shielding</h3>
-                    <p class="text-white/40 text-sm leading-relaxed">Multi-layered electromagnetic grids protecting against solar flares.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+</div><!-- #page -->
 
-    <!-- FOOTER -->
-    <footer class="py-20 border-t border-white/5 text-center px-6 bg-black">
-        <div class="reveal">
-            <h2 class="text-3xl font-bold tracking-tight mb-8 italic">THE STARS AWAIT.</h2>
-            <div class="flex justify-center gap-4">
-                <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
-                <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
-                <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
-            </div>
-            <p class="mt-12 text-[10px] tracking-[0.4em] text-white/20 uppercase">© 2142 Aetheris Corp / Earth Standard Time</p>
-        </div>
-    </footer>
 
-    <!-- SCRIPTS -->
-    <script>
-        const video = document.getElementById('bgVideo');
-        const navbar = document.getElementById('navbar');
-        const reveals = document.querySelectorAll('.reveal');
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  SCRIPTS                                                -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<script>
+(function () {
+    'use strict';
 
-        // 1. THE SCRUBBING ENGINE
-        // Maps scroll percentage to video timeline
-        function scrubVideo() {
-            const scrollPos = window.pageYOffset;
-            const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-            const scrollPercent = scrollPos / totalHeight;
+    /* ── 1. VIDEO SCRUB ENGINE ────────────────────────────── */
+    const video   = document.getElementById('bgVideo');
+    let duration  = 0;
+    let targetTime = 0;
 
-            if (video.duration) {
-                // Smoothly update video time
-                video.currentTime = video.duration * scrollPercent;
+    video.addEventListener('loadedmetadata', () => {
+        duration = video.duration;
+        video.pause();
+    });
+
+    /* Ensure video never auto-plays */
+    video.addEventListener('play', () => video.pause());
+
+    window.addEventListener('scroll', () => {
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        const frac = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+        targetTime = frac * duration;
+    }, { passive: true });
+
+    (function updateVideo() {
+        if (video && !video.seeking && duration > 0) {
+            if (Math.abs(video.currentTime - targetTime) > 0.05) {
+                video.currentTime = targetTime;
             }
-
-            // Navbar visual update
-            if (scrollPos > 60) {
-                navbar.classList.add('bg-black/60', 'backdrop-blur-xl', 'py-4', 'border-white/10', 'border-b');
-                navbar.classList.remove('py-8', 'border-transparent');
-            } else {
-                navbar.classList.remove('bg-black/60', 'backdrop-blur-xl', 'py-4', 'border-white/10', 'border-b');
-                navbar.classList.add('py-8', 'border-transparent');
-            }
-
-            // Trigger Reveals
-            reveals.forEach(el => {
-                const rect = el.getBoundingClientRect();
-                if (rect.top < window.innerHeight * 0.85) {
-                    el.classList.add('active');
-                }
-            });
-
-            requestAnimationFrame(scrubVideo);
         }
+        requestAnimationFrame(updateVideo);
+    }());
 
-        // Start the engine
-        window.onload = () => {
-            requestAnimationFrame(scrubVideo);
-            // Check reveals once on load
-            reveals.forEach(el => {
-                const rect = el.getBoundingClientRect();
-                if (rect.top < window.innerHeight) el.classList.add('active');
-            });
-        };
 
-        // Handle possible video load delay
-        video.addEventListener('loadedmetadata', () => {
-            console.log("Stellar engine online. Duration:", video.duration);
+    /* ── 2. HEADER: FADE-IN + PARALLAX ───────────────────── */
+    const header = document.getElementById('site-header');
+    let headerY  = 0;
+
+    /* Fade in on load */
+    header.style.transition = 'opacity 0.9s cubic-bezier(0.16,1,0.3,1)';
+    window.addEventListener('load', () => {
+        setTimeout(() => { header.style.opacity = '1'; }, 120);
+    });
+    /* Fallback in case load already fired */
+    if (document.readyState === 'complete') { header.style.opacity = '1'; }
+
+    window.addEventListener('scroll', () => {
+        const sy = window.scrollY;
+        /* Map [500,800] → [0,-150] */
+        if (sy <= 500) {
+            headerY = 0;
+        } else {
+            headerY = Math.max(-150, ((sy - 500) / 300) * -150);
+        }
+        header.style.transform = `translateY(${headerY}px)`;
+    }, { passive: true });
+
+
+    /* ── 3. SCROLL REVEAL ─────────────────────────────────── */
+    const reveals = document.querySelectorAll('.reveal');
+
+    function checkReveals() {
+        reveals.forEach(el => {
+            if (el.getBoundingClientRect().top < window.innerHeight - 50) {
+                el.classList.add('active');
+            }
         });
-    </script>
+    }
+    window.addEventListener('scroll', checkReveals, { passive: true });
+    checkReveals();
+
+
+    /* ── 4. WORD-BLUR REVEAL ─────────────────────────────── */
+    const wrBlocks = [
+        document.getElementById('wr-turnkey'),
+        document.getElementById('wr-precision'),
+    ].filter(Boolean);
+
+    function checkWordReveal() {
+        wrBlocks.forEach(block => {
+            const rect  = block.getBoundingClientRect();
+            const words = block.querySelectorAll('.wr');
+            if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+
+            const progress = Math.max(0, Math.min(1,
+                (window.innerHeight - rect.top) / (window.innerHeight * 0.85 + rect.height * 0.6)
+            ));
+
+            words.forEach((w, i) => {
+                const thresh = (i / words.length) * 0.88;
+                w.classList.toggle('lit', progress > thresh);
+            });
+        });
+    }
+    window.addEventListener('scroll', checkWordReveal, { passive: true });
+    checkWordReveal();
+
+}());
+</script>
+
 </body>
 </html>
-
-```
